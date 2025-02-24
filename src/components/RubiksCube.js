@@ -115,7 +115,7 @@ class RubiksCube {
     
     // Helper to get cubelets on a specific face
     getCubeletsOnFace(face) {
-        const epsilon = a = 0.1; // Small threshold for floating point comparison
+        const epsilon = 0.1; // Small threshold for floating point comparison
         
         switch(face) {
             case 'right': // +x face
