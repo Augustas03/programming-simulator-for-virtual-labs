@@ -1,5 +1,7 @@
 # Educational 3D Rubik's Cube Simulator
 
+![alt text](rubiks-cube.gif)
+
 A three.js-based Rubik's Cube simulator designed for teaching programming concepts through hands-on algorithm implementation. This project provides students with a visual, interactive environment to write and test Rubik's Cube algorithms without getting bogged down in UI implementation details.
 
 ## Project Overview
