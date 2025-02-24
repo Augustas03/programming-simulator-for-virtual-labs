@@ -2,6 +2,8 @@
 class CodeInterface {
     constructor(rubiksCube) {
         this.rubiksCube = rubiksCube;
+        this.isExecuting = false;
+        this.timeouts = [];
         this.createInterface();
     }
     
@@ -26,16 +28,6 @@ class CodeInterface {
         title.style.margin = '0 0 10px 0';
         container.appendChild(title);
         
-        // Create orientation notice
-        const orientationNotice = document.createElement('div');
-        orientationNotice.style.backgroundColor = '#2d5986';
-        orientationNotice.style.padding = '8px';
-        orientationNotice.style.borderRadius = '3px';
-        orientationNotice.style.marginBottom = '10px';
-        orientationNotice.style.fontSize = '12px';
-        orientationNotice.innerHTML = `<strong>Orientation Guide:</strong> In code, F=Front (Blue), B=Back (Green), R=Right (Orange), L=Left (Red), U=Up/Top (White), D=Down/Bottom (Yellow). <br>See the indicator in the bottom-left corner for reference.`;
-        container.appendChild(orientationNotice);
-        
         // Create code editor textarea
         const codeEditor = document.createElement('textarea');
         codeEditor.style.width = '100%';
@@ -50,10 +42,7 @@ class CodeInterface {
         codeEditor.style.marginBottom = '10px';
         codeEditor.style.resize = 'vertical';
         codeEditor.spellcheck = false;
-        
-        // Set default code example
         codeEditor.value = this.getDefaultCode();
-        
         container.appendChild(codeEditor);
         this.codeEditor = codeEditor;
         
@@ -67,8 +56,15 @@ class CodeInterface {
         executeButton.style.padding = '8px 16px';
         executeButton.style.cursor = 'pointer';
         executeButton.style.marginRight = '10px';
-        executeButton.addEventListener('click', () => this.executeCode());
+        executeButton.addEventListener('click', () => {
+            if (this.isExecuting) {
+                this.stopExecution();
+            } else {
+                this.executeCode();
+            }
+        });
         container.appendChild(executeButton);
+        this.executeButton = executeButton;
         
         // Create reset button
         const resetButton = document.createElement('button');
@@ -81,6 +77,7 @@ class CodeInterface {
         resetButton.style.cursor = 'pointer';
         resetButton.addEventListener('click', () => this.resetCube());
         container.appendChild(resetButton);
+        this.resetButton = resetButton;
         
         // Create output console
         const output = document.createElement('div');
@@ -135,166 +132,329 @@ class CodeInterface {
     }
     
     getDefaultCode() {
-        return `// Example: Perform a sequence of moves
-function solveCross() {
-    // This is just an example sequence
-    cube.F();  // Rotate front face (Blue) clockwise
-    cube.R();  // Rotate right face (Orange) clockwise
-    cube.U();  // Rotate top face (White) clockwise
-    cube.RPrime();  // Rotate right face counter-clockwise
-    cube.UPrime();  // Rotate top face counter-clockwise
-    cube.FPrime();  // Rotate front face counter-clockwise
-    
-    console.log("Cross solved!");
-}
-
-// Example: Create a simple algorithm
-function simpleAlgorithm() {
-    // R U R' U' (The "Sexy Move")
-    cube.R();      // Right face clockwise
-    cube.U();      // Top face clockwise
-    cube.RPrime(); // Right face counter-clockwise
-    cube.UPrime(); // Top face counter-clockwise
-    
-    console.log("Simple algorithm executed!");
-}
-
-// Example: Scramble the cube
-function scrambleCube(moves = 20) {
-    const possibleMoves = [
-        'R', 'RPrime', 'L', 'LPrime', 
-        'U', 'UPrime', 'D', 'DPrime', 
-        'F', 'FPrime', 'B', 'BPrime'
-    ];
-    
-    for (let i = 0; i < moves; i++) {
-        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-        cube[randomMove]();
-    }
-    
-    console.log("Cube scrambled with " + moves + " random moves");
-}
-
-// Example: Run your own code here
-function myAlgorithm() {
-    // Write your code here
-    console.log("Starting my algorithm...");
-    
-    // Your solution code goes here
-    
+        return `// Example: Simple algorithm (R U R' U')
+async function simpleAlgorithm() {
+    console.log("Starting algorithm...");
+    await cube.R();      // Right face clockwise
+    await cube.U();      // Top face clockwise
+    await cube.RPrime(); // Right face counter-clockwise
+    await cube.UPrime(); // Top face counter-clockwise
     console.log("Algorithm completed!");
 }
 
-// Call your functions here
-scrambleCube(10);
-// Uncomment to run your algorithm
-// myAlgorithm();`;
+// Run the algorithm
+simpleAlgorithm();`;
     }
     
     getHelpContent() {
         return `
-<h4>Rubik's Cube API Reference</h4>
-<p><strong>Face Notation:</strong></p>
-<ul>
-    <li><strong>F</strong> = Front face (Blue)</li>
-    <li><strong>B</strong> = Back face (Green)</li>
-    <li><strong>R</strong> = Right face (Orange)</li>
-    <li><strong>L</strong> = Left face (Red)</li>
-    <li><strong>U</strong> = Up/Top face (White)</li>
-    <li><strong>D</strong> = Down/Bottom face (Yellow)</li>
-</ul>
+<div style="color: #d4d4d4; background-color: #2d2d2d;">
+  <h4 style="color: #d4d4d4; margin-top: 0;">Rubik's Cube API Reference</h4>
+  <p style="color: #d4d4d4;"><strong style="color: #d4d4d4;">Face Notation:</strong></p>
+  <ul style="color: #d4d4d4;">
+      <li><strong style="color: #d4d4d4;">F</strong> = Front face (Blue)</li>
+      <li><strong style="color: #d4d4d4;">B</strong> = Back face (Green)</li>
+      <li><strong style="color: #d4d4d4;">R</strong> = Right face (Orange)</li>
+      <li><strong style="color: #d4d4d4;">L</strong> = Left face (Red)</li>
+      <li><strong style="color: #d4d4d4;">U</strong> = Up/Top face (White)</li>
+      <li><strong style="color: #d4d4d4;">D</strong> = Down/Bottom face (Yellow)</li>
+  </ul>
 
-<p><strong>Available methods:</strong></p>
-<ul>
-    <li><code>cube.R()</code> - Rotate right face (Orange) clockwise</li>
-    <li><code>cube.RPrime()</code> - Rotate right face counter-clockwise</li>
-    <li><code>cube.L()</code> - Rotate left face (Red) clockwise</li>
-    <li><code>cube.LPrime()</code> - Rotate left face counter-clockwise</li>
-    <li><code>cube.U()</code> - Rotate top face (White) clockwise</li>
-    <li><code>cube.UPrime()</code> - Rotate top face counter-clockwise</li>
-    <li><code>cube.D()</code> - Rotate bottom face (Yellow) clockwise</li>
-    <li><code>cube.DPrime()</code> - Rotate bottom face counter-clockwise</li>
-    <li><code>cube.F()</code> - Rotate front face (Blue) clockwise</li>
-    <li><code>cube.FPrime()</code> - Rotate front face counter-clockwise</li>
-    <li><code>cube.B()</code> - Rotate back face (Green) clockwise</li>
-    <li><code>cube.BPrime()</code> - Rotate back face counter-clockwise</li>
-</ul>
+  <p style="color: #d4d4d4;"><strong style="color: #d4d4d4;">Important: All cube functions must be used with await inside an async function!</strong></p>
 
-<p><strong>Other useful methods:</strong></p>
-<ul>
-    <li><code>cube.executeSequence(moveArray, callback)</code> - Execute a sequence of moves</li>
-    <li><code>cube.getCubeState()</code> - Get the current state of the cube</li>
-    <li><code>cube.checkIfSolved()</code> - Check if the cube is solved</li>
-    <li><code>console.log(message)</code> - Output a message to the console below</li>
-</ul>
+  <p style="color: #d4d4d4;"><strong style="color: #d4d4d4;">Available methods:</strong></p>
+  <ul style="color: #d4d4d4;">
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.R()</code> - Rotate right face (Orange) clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.RPrime()</code> - Rotate right face counter-clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.L()</code> - Rotate left face (Red) clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.LPrime()</code> - Rotate left face counter-clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.U()</code> - Rotate top face (White) clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.UPrime()</code> - Rotate top face counter-clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.D()</code> - Rotate bottom face (Yellow) clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.DPrime()</code> - Rotate bottom face counter-clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.F()</code> - Rotate front face (Blue) clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.FPrime()</code> - Rotate front face counter-clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.B()</code> - Rotate back face (Green) clockwise</li>
+      <li><code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await cube.BPrime()</code> - Rotate back face counter-clockwise</li>
+  </ul>
 
-<h4>Example Algorithms:</h4>
+  <p style="color: #d4d4d4;"><strong style="color: #d4d4d4;">Example Algorithm:</strong></p>
+  <pre style="background-color: #1e1e1e; padding: 10px; border-radius: 3px; color: #d4d4d4; margin: 0;">
+async function example() {
+    // The "Sexy Move" (R U R' U')
+    await cube.R();      // Right clockwise
+    await cube.U();      // Up clockwise
+    await cube.RPrime(); // Right counter-clockwise
+    await cube.UPrime(); // Up counter-clockwise
+    
+    console.log("Algorithm complete!");
+}
 
-<p><strong>Sexy Move (R U R' U'):</strong></p>
-<pre>
-cube.R();
-cube.U();
-cube.RPrime();
-cube.UPrime();
-</pre>
+// Don't forget to call your function!
+example();</pre>
 
-<p><strong>Sune Algorithm (R U R' U R U2 R'):</strong></p>
-<pre>
-cube.R();
-cube.U();
-cube.RPrime();
-cube.U();
-cube.R();
-cube.U();
-cube.U();
-cube.RPrime();
-</pre>
+  <p style="color: #d4d4d4;"><strong style="color: #d4d4d4;">Tips:</strong></p>
+  <ul style="color: #d4d4d4;">
+      <li>Always use <code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">await</code> before cube movements</li>
+      <li>Define your functions as <code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">async</code></li>
+      <li>Use <code style="background-color: #1e1e1e; padding: 2px 4px; border-radius: 3px;">console.log()</code> to debug your algorithm</li>
+      <li>Check the orientation guide for face colors</li>
+  </ul>
 
-<p><strong>Execute a Sequence:</strong></p>
-<pre>
-cube.executeSequence(['R', 'U', 'RPrime', 'UPrime'], function() {
-    console.log("Sequence completed!");
-});
-</pre>
-
-<p><strong>Important Note:</strong> The cube face notation is fixed, regardless of how you rotate the camera view. Use the orientation guide in the bottom-left corner for reference.</p>
-`;
+  <p style="color: #d4d4d4;"><strong style="color: #d4d4d4;">Important Note:</strong> The cube face notation is fixed, regardless of how you rotate the camera view. Use the orientation guide in the bottom-left corner for reference.</p>
+</div>`;
     }
     
     executeCode() {
+        if (this.isExecuting) return;
+        
         // Clear the output console
         this.outputConsole.innerHTML = '';
+        
+        // Update UI state
+        this.isExecuting = true;
+        this.executeButton.textContent = 'Stop Execution';
+        this.executeButton.style.backgroundColor = '#d83b01';
+        this.resetButton.disabled = true;
+        this.resetButton.style.opacity = '0.5';
+        this.resetButton.style.cursor = 'not-allowed';
         
         // Get the code from the editor
         const code = this.codeEditor.value;
         
-        // Create a sandbox with access to the cube
-        const sandbox = {
-            cube: this.rubiksCube,
-            console: {
-                log: (message) => {
-                    this.log(message);
-                },
-                error: (message) => {
-                    this.log('ERROR: ' + message, 'error');
-                },
-                warn: (message) => {
-                    this.log('WARNING: ' + message, 'warning');
-                }
-            }
-        };
+        // Store a reference to 'this' for the closure
+        const self = this;
         
         try {
-            // Execute the code in the sandbox
-            const executeInContext = new Function('cube', 'console', code);
-            executeInContext(sandbox.cube, sandbox.console);
+            // Create sandbox environment with completion tracking
+            const sandbox = {
+                cube: {
+                    R: () => {
+                        if (!self.isExecuting) return Promise.resolve(); // Stop if execution is cancelled
+                        return new Promise((resolve) => {
+                            self.rubiksCube.R(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    RPrime: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.RPrime(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    L: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.L(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    LPrime: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.LPrime(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    U: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.U(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    UPrime: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.UPrime(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    D: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.D(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    DPrime: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.DPrime(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    F: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.F(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    FPrime: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.FPrime(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    B: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.B(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    BPrime: () => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.BPrime(() => {
+                                if (self.isExecuting) resolve();
+                                self.checkForCompletion();
+                            });
+                        });
+                    },
+                    executeSequence: (moves, callback) => {
+                        if (!self.isExecuting) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            self.rubiksCube.executeSequence(moves, () => {
+                                if (self.isExecuting) {
+                                    if (callback) callback();
+                                    resolve();
+                                }
+                                self.checkForCompletion();
+                            });
+                        });
+                    }
+                },
+                console: {
+                    log: (message) => {
+                        if (!self.isExecuting) return;
+                        self.log(message);
+                        self.checkForCompletion();
+                    },
+                    error: (message) => {
+                        if (!self.isExecuting) return;
+                        self.log('ERROR: ' + message, 'error');
+                        self.checkForCompletion();
+                    },
+                    warn: (message) => {
+                        if (!self.isExecuting) return;
+                        self.log('WARNING: ' + message, 'warning');
+                        self.checkForCompletion();
+                    }
+                },
+                // Add check completion function to sandbox
+                checkCompletion: () => self.checkForCompletion()
+            };
+
+            // Wrap the code in an async IIFE without 'this' reference
+            const wrappedCode = `
+                (async () => {
+                    try {
+                        ${code}
+                        // Add a final completion check after all code has run
+                        setTimeout(checkCompletion, 500);
+                    } catch (error) {
+                        console.error(error);
+                        checkCompletion();
+                    }
+                })();
+            `;
+
+            // Execute the code
+            const executeInContext = new Function('cube', 'console', 'checkCompletion', wrappedCode);
+            executeInContext(sandbox.cube, sandbox.console, sandbox.checkCompletion);
+            
+            this.log('Code execution started...');
         } catch (error) {
             this.log('ERROR: ' + error.message, 'error');
+            this.stopExecution();
         }
     }
     
+    checkForCompletion() {
+        if (!this.isExecuting) return;
+        
+        // If the cube is not rotating anymore, we can reset the UI
+        if (!this.rubiksCube.isRotating) {
+            // Add a small delay to make sure all animations are complete
+            setTimeout(() => {
+                if (!this.rubiksCube.isRotating) {
+                    this.finishExecution();
+                }
+            }, 100);
+        }
+    }
+
+    finishExecution() {
+        if (!this.isExecuting) return;
+        
+        this.isExecuting = false;
+        this.executeButton.textContent = 'Execute Code';
+        this.executeButton.style.backgroundColor = '#0078d7';
+        this.resetButton.disabled = false;
+        this.resetButton.style.opacity = '1';
+        this.resetButton.style.cursor = 'pointer';
+        this.log('Code execution completed.');
+    }
+    
+    stopExecution() {
+        // Clear all timeouts
+        if (this.timeouts) {
+            this.timeouts.forEach(timeoutId => clearTimeout(timeoutId));
+            this.timeouts = [];
+        }
+        
+        // Reset execution state
+        this.isExecuting = false;
+        
+        // Update UI
+        this.executeButton.textContent = 'Execute Code';
+        this.executeButton.style.backgroundColor = '#0078d7';
+        this.resetButton.disabled = false;
+        this.resetButton.style.opacity = '1';
+        this.resetButton.style.cursor = 'pointer';
+        
+        // Cancel any ongoing rotation
+        if (this.rubiksCube.isRotating) {
+            // Set a flag to indicate rotation should stop
+            this.rubiksCube.stopRotation = true;
+        }
+        
+        this.log('Code execution stopped', 'warning');
+    }
+    
     resetCube() {
-        // Recreate the cube (using the RubiksCube's initCube method)
+        // Stop any ongoing execution first
+        if (this.isExecuting) {
+            this.stopExecution();
+        }
+        
+        // Recreate the cube
         this.rubiksCube.initCube();
         this.log('Cube has been reset to its initial solved state.');
     }
