@@ -32,7 +32,7 @@ This simulator allows students to:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/rubiks-cube-simulator.git
+git clone https://github.com/yourusername/programming-simulator-for-virtual-labs.git
 ```
 
 2. Install dependencies:
