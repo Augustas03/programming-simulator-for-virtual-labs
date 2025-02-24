@@ -5,6 +5,11 @@ import RubiksCubeSolver from './components/RubiksCubeSolver';
 import CodeInterface from './components/CodeInterface';
 import FaceOrientationIndicator from './components/FaceOrientationIndicator';
 
+document.body.style.backgroundColor = '#222222';
+document.body.style.margin = '0';
+document.body.style.overflowX = 'hidden'; // Prevent horizontal scrolling
+document.body.style.color = '#d4d4d4'; // Light text for better contrast
+
 // Create scene
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
