@@ -1,4 +1,3 @@
-// CodeInterface.js
 class CodeInterface {
     constructor(rubiksCube) {
         this.rubiksCube = rubiksCube;
