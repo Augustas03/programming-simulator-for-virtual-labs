@@ -1,4 +1,3 @@
-// RubiksCube.js
 import * as THREE from 'three';
 
 // Define standard colors for the cube

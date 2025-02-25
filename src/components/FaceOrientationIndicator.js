@@ -1,4 +1,3 @@
-// FaceOrientationIndicator.js
 class FaceOrientationIndicator {
     constructor() {
         this.createIndicator();
