@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import RubiksCube from './components/RubiksCube';
-import RubiksCubeSolver from './components/RubiksCubeSolver';
 import CodeInterface from './components/CodeInterface';
 import FaceOrientationIndicator from './components/FaceOrientationIndicator';
 
@@ -40,8 +39,6 @@ scene.add(axesHelper);
 // Create the Rubik's Cube
 const rubiksCube = new RubiksCube(scene);
 
-// Initialize the solver (for backend use)
-const solver = new RubiksCubeSolver(rubiksCube);
 
 // Create the code interface
 const codeInterface = new CodeInterface(rubiksCube);

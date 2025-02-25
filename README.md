@@ -98,7 +98,6 @@ src/
 ├── main.js                 # Main application entry
 ├── components/
 │   ├── RubiksCube.js      # Core cube functionality
-│   ├── RubiksCubeSolver.js # Solver implementation
 │   ├── CodeInterface.js    # Code editor interface
 │   └── FaceOrientationIndicator.js # Orientation guide
 └── helpers/
