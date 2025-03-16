@@ -3,13 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubik's Cube</title>
+    <title>Interactive Rubik's Cube Platform</title>
     <style>
-        body { margin: 0; }
-        canvas { display: block; }
+        /* Core application styles */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #202030;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Loading screen styles */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #202030;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        
+        #loading h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Button state transition effects */
+        button {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .execution-completed {
+            animation: flash-complete 0.3s;
+        }
+        
+        @keyframes flash-complete {
+            0% { box-shadow: 0 0 0 0 rgba(0, 120, 215, 0.8); }
+            50% { box-shadow: 0 0 0 10px rgba(0, 120, 215, 0.4); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 120, 215, 0); }
+        }
     </style>
 </head>
 <body>
-    <script type="module" src="/src/main.js"></script>
+    <!-- Loading screen -->
+    <div id="loading">
+        <h1>Loading Rubik's Cube Platform</h1>
+        <div class="spinner"></div>
+    </div>
+    
+    <!-- Import map for loading three.js modules -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.156.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.156.1/examples/jsm/"
+            }
+        }
+    </script>
+    
+    <!-- Main application script -->
+    <script type="module" src="./src/main.js"></script>
+    
+    <!-- Application initialization -->
+    <script>
+        /**
+         * Hides loading screen once everything is loaded
+         */
+        window.addEventListener('load', function() {
+            // Add a small delay to ensure all components are initialized
+            setTimeout(function() {
+                const loadingScreen = document.getElementById('loading');
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.transition = 'opacity 0.5s ease';
+                setTimeout(function() {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }, 1000);
+        });
+        
+        /**
+         * Debugging utility function for diagnosing interface issues
+         */
+        window.diagnoseCubeInterface = function() {
+            const button = document.getElementById('execute-button');
+            const debugStatus = document.getElementById('debug-status');
+            
+            console.log("=== CUBE INTERFACE DIAGNOSTICS ===");
+            console.log("Execute Button Text:", button ? button.textContent : 'Button not found');
+            console.log("Execute Button Color:", button ? button.style.backgroundColor : 'N/A');
+            console.log("Debug Status:", debugStatus ? debugStatus.textContent : 'Status not found');
+            
+            // Check if CodeInterface is accessible
+            if (window.gamesPlatform && window.gamesPlatform.codeInterface) {
+                const ci = window.gamesPlatform.codeInterface;
+                console.log("CodeInterface.isExecuting:", ci.isExecuting);
+                
+                // Try forcing a UI update
+                console.log("Attempting to force UI update...");
+                ci.forceUpdateButtonState();
+            } else {
+                console.log("CodeInterface not accessible from window.gamesPlatform");
+            }
+            
+            console.log("=== END DIAGNOSTICS ===");
+        };
+        
+        /**
+         * Makes the GamesPlatform globally accessible for debugging
+         */
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                // Wait for things to initialize
+                if (typeof gamesPlatform !== 'undefined') {
+                    window.gamesPlatform = gamesPlatform;
+                    console.log("GamesPlatform exported to window.gamesPlatform for debugging");
+                }
+            }, 2000);
+        });
+    </script>
+    
+    <!-- Button state enforcement -->
+    <script>
+        /**
+         * Enforces button state to prevent UI inconsistencies
+         */
+        window.enforceButtonState = function() {
+            // Wait for everything to be initialized
+            setTimeout(function() {
+                console.log("[INIT] Setting up button state enforcement");
+                
+                // Find the button
+                const executeButton = document.getElementById('execute-button') || 
+                                     document.querySelector('button');
+                
+                if (!executeButton) {
+                    console.error("[INIT] Could not find execute button");
+                    return;
+                }
+                
+                // Flag to prevent rapid button toggling
+                let buttonDebounce = false;
+                
+                // Override the click handler
+                executeButton.addEventListener('click', function(event) {
+                    console.log("[BUTTON] Button clicked, current text:", executeButton.textContent);
+                    
+                    // Debounce button clicks
+                    if (buttonDebounce) {
+                        console.log("[BUTTON] Ignoring click during debounce period");
+                        return;
+                    }
+                    
+                    buttonDebounce = true;
+                    setTimeout(() => { buttonDebounce = false; }, 500);
+                    
+                    if (executeButton.textContent === 'Execute Code') {
+                        console.log("[BUTTON] Setting to 'Stop Execution'");
+                        
+                        // Force the button to 'Stop Execution' state
+                        executeButton.textContent = 'Stop Execution';
+                        executeButton.style.backgroundColor = '#d83b01';
+                        
+                        // Set a flag in window
+                        window.isExecutingCode = true;
+                        
+                        // Also monitor for premature state changes
+                        if (window.buttonMonitorInterval) {
+                            clearInterval(window.buttonMonitorInterval);
+                        }
+                        
+                        window.buttonMonitorInterval = setInterval(function() {
+                            // Don't enforce if execution recently completed
+                            if (window.recentlyCompletedExecution) {
+                                return;
+                            }
+                            
+                            if (window.isExecutingCode && executeButton.textContent !== 'Stop Execution') {
+                                console.log("[MONITOR] Fixing button that changed prematurely");
+                                executeButton.textContent = 'Stop Execution';
+                                executeButton.style.backgroundColor = '#d83b01';
+                            }
+                        }, 100);
+                    } else {
+                        console.log("[BUTTON] Setting to 'Execute Code'");
+                        
+                        // Ensure all execution flags are reset
+                        executeButton.textContent = 'Execute Code';
+                        executeButton.style.backgroundColor = '#0078d7';
+                        
+                        window.isExecutingCode = false;
+                        
+                        // Stop monitoring
+                        if (window.buttonMonitorInterval) {
+                            clearInterval(window.buttonMonitorInterval);
+                            window.buttonMonitorInterval = null;
+                        }
+                    }
+                }, true); // Use capturing to ensure this runs first
+                
+                console.log("[INIT] Button state enforcement set up successfully");
+            }, 2000);
+        };
+        
+        // Call this function to set up enforcement
+        window.enforceButtonState();
+    </script>
+    
+    <!-- Direct button state control -->
+    <script>
+        /**
+         * Direct function to force button state
+         * @param {string} state - 'execute' or 'stop'
+         */
+        window.forceButtonState = function(state) {
+            console.log(`[FORCE] Setting button state to: ${state}`);
+            
+            // Find the button
+            const executeButton = document.getElementById('execute-button') || 
+                                  document.querySelector('button');
+            
+            if (!executeButton) {
+                console.error("[FORCE] Could not find execute button");
+                return;
+            }
+            
+            if (state === 'execute') {
+                executeButton.textContent = 'Execute Code';
+                executeButton.style.backgroundColor = '#0078d7';
+                window.isExecutingCode = false;
+                
+                if (window.buttonMonitorInterval) {
+                    clearInterval(window.buttonMonitorInterval);
+                    window.buttonMonitorInterval = null;
+                }
+                
+                console.log("[FORCE] Button set to 'Execute Code'");
+            } else if (state === 'stop') {
+                executeButton.textContent = 'Stop Execution';
+                executeButton.style.backgroundColor = '#d83b01';
+                window.isExecutingCode = true;
+                
+                console.log("[FORCE] Button set to 'Stop Execution'");
+            }
+        };
+        
+        /**
+         * Extend CodeInterface to ensure proper button state after execution
+         */
+        setTimeout(() => {
+            if (typeof CodeInterface !== 'undefined') {
+                const origComplete = CodeInterface.prototype.onExecutionComplete;
+                
+                CodeInterface.prototype.onExecutionComplete = function() {
+                    // Call the original method
+                    origComplete.apply(this, arguments);
+                    
+                    // Force the button state after a short delay
+                    setTimeout(() => {
+                        window.forceButtonState('execute');
+                    }, 100);
+                };
+                
+                console.log("[INIT] Enhanced onExecutionComplete with force button state");
+            }
+        }, 3000);
+    </script>
 </body>
 </html>
