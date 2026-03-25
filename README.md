@@ -11,6 +11,8 @@ This simulator allows users to:
 - Understand spatial relationships and algorithmic thinking
 - Focus on problem-solving rather than graphics programming
 
+![Alt text](rubiks-cube.gif?raw=true "Optional Title")
+
 ## Features
 
 - **Interactive 3D Cube**: Fully rendered, manipulatable Rubik's Cube
