@@ -1,11 +1,11 @@
-# Educational 3D Rubik's Cube Simulator
+# 3D Rubik's Cube Simulator
 
 
-A three.js-based Rubik's Cube simulator designed for teaching programming concepts through hands-on algorithm implementation. This project provides students with a visual, interactive environment to write and test Rubik's Cube algorithms without getting bogged down in UI implementation details.
+A three.js-based Rubik's Cube simulator designed for teaching programming concepts through hands-on algorithm implementation. This project provides users with a visual, interactive environment to write and test Rubik's Cube algorithms.
 
 ## Project Overview
 
-This simulator allows students to:
+This simulator allows users to:
 - Write code to manipulate a 3D Rubik's Cube
 - Visualize their algorithms in real-time
 - Understand spatial relationships and algorithmic thinking
@@ -31,7 +31,7 @@ This simulator allows students to:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/programming-simulator-for-virtual-labs.git
+git clone https://github.com/Augustas03/programming-simulator-for-virtual-labs.git
 ```
 
 2. Install dependencies:
@@ -55,7 +55,7 @@ npm run dev
 
 ### Writing Code
 
-The simulator provides a code interface where students can write JavaScript to control the cube. Example usage:
+The simulator provides a code interface where users can write JavaScript, Python, Java, C# to control the cube. Example usage:
 
 ```javascript
 // Execute a simple algorithm (R U R' U')
@@ -81,9 +81,9 @@ cube.executeSequence(['R', 'U', 'RPrime', 'UPrime'], () => {
 - `F()`, `FPrime()` - Front face rotations
 - `B()`, `BPrime()` - Back face rotations
 
-## Educational Purpose
+## Purpose
 
-This project is designed to help students:
+This project is designed to help users:
 1. Learn algorithmic thinking
 2. Understand 3D space manipulation
 3. Practice problem decomposition
@@ -120,9 +120,4 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 [MIT](https://choosealicense.com/licenses/mit/)
 
-## Acknowledgments
-
-- This project was inspired by the educational concept of using tangible interfaces for teaching programming concepts
-- Built using Three.js for 3D rendering
-- Special thanks to the Rubik's Cube community for standardized notation and algorithms
 
